@@ -20,11 +20,6 @@ function doMove ( obj, attr, dir, target, endFn ) {
 		
 		if ( speed == target ) {
 			clearInterval( obj.timer );
-			/*
-			if ( endFn ) {
-				endFn();
-			}
-			*/
 			endFn && endFn();
 		}
 		
@@ -47,7 +42,76 @@ function doMoveV2(obj,attr,target,duration,callback){
 			obj.style[attr] = target+"px";
 			callback&&callback();//当到达目标值的时候执行回调函数
 		}
-	},30)
+	},30);
+}
+
+//兼顾透明度的运动函数V3.0 链式运动 有回调函数  不可以同时多值运动
+function doMoveV3(obj,attr,iTarget,fnEnd){
+	clearInterval(obj.timer);
+	obj.timer=setInterval(function(){
+		var iCur = parseFloat(getStyle(obj, attr));
+		if (attr == "opacity"){
+			iCur = parseInt(parseFloat(getStyle(obj,attr))*100)
+		}else{
+			iCur = parseInt(getStyle(obj, attr));	
+		}
+		var iSpeed = (iTarget - iCur) / 8;
+		iSpeed = iSpeed > 0 ? Math.ceil(iSpeed) : Math.floor(iSpeed);
+		if (iTarget == iCur){
+			clearInterval(obj.timer);
+			fnEnd && fnEnd();	
+		}else{
+			if (attr == "opacity"){
+				obj.style.filter = "alpha(opacity = " + (iCur + iSpeed) + ")";
+				obj.style.opacity = (iCur + iSpeed)	/ 100;
+			}else{
+				obj.style[attr] = iCur + iSpeed + "px";	
+			}
+		}
+
+	},30);
+}
+
+//完美运动框架 可以多个值同时运动 多个物体同时运动 有链式运动（回调函数）
+function doMoveV4(obj,json,fnEnd){
+	clearInterval(obj.timer);
+	obj.timer=setInterval(function(){
+		var bStop=true;
+
+		for (var attr in json){
+			//1 取当前值
+			var iCur = parseFloat(getStyle(obj, attr));
+			if (attr == "opacity"){
+				iCur = parseInt(parseFloat(getStyle(obj,attr))*100)
+			}else{
+				iCur = parseInt(getStyle(obj, attr));	
+			}
+
+			//2 算速度
+			var iSpeed = (json[attr] - iCur) / 8;
+			iSpeed = iSpeed > 0 ? Math.ceil(iSpeed) : Math.floor(iSpeed);
+
+			//3 停止检测
+			if (iCur!=json[attr]){
+				bStop=false;
+			}
+
+			if (attr == "opacity"){
+				obj.style.filter = "alpha(opacity = " + (iCur + iSpeed) + ")";
+				obj.style.opacity = (iCur + iSpeed)	/ 100;
+			}else{
+				obj.style[attr] = iCur + iSpeed + "px";	
+			}
+		}
+
+		if (bStop)
+		{
+			clearInterval(obj.timer);
+			fnEnd && fnEnd();	
+		}
+
+	},30);
+}
 
 //抖动函数封装
 function shake ( obj, attr, endFn ) {
@@ -193,6 +257,77 @@ function drag(obj) {
 				obj.releaseCapture();
 			}
 		}
-		return false;
+		return false;//阻止标准浏览器默认行为
 	}
 }//使用示例 drag(oDiv);
+
+//限制范围的拖拽
+function dragInArea(obj) {
+	
+	obj.onmousedown = function(ev) {
+		var ev = ev || event;
+		var disX = ev.clientX - this.offsetLeft;
+		var disY = ev.clientY - this.offsetTop;
+		if ( obj.setCapture ) {
+			obj.setCapture();
+		}
+		document.onmousemove = function(ev) {
+			var ev = ev || event;
+			
+			var L = ev.clientX - disX;
+			var T = ev.clientY - disY;
+			
+			if ( L < 0 ) {//磁性吸附 可以把判断条件改为L <100
+				L = 0;
+			} else if ( L > document.documentElement.clientWidth - obj.offsetWidth ) {
+				L = document.documentElement.clientWidth - obj.offsetWidth;
+			}
+			
+			if ( T < 0 ) {//磁性吸附 可以把判断条件改为T < 100
+				T = 0;
+			} else if ( T > document.documentElement.clientHeight - obj.offsetHeight ) {
+				T = document.documentElement.clientHeight - obj.offsetHeight;
+			}
+			obj.style.left = L + 'px';
+			obj.style.top = T + 'px';
+		}
+		
+		document.onmouseup = function() {
+			document.onmousemove = document.onmouseup = null;
+			if ( obj.releaseCapture ) {
+				obj.releaseCapture();
+			}
+		}
+		return false;
+	}
+}
+
+//鼠标滚动函数封装//fnUp fnDown分别为鼠标向上和向下滚动的回调函数
+function mouseWheel(obj,fnUp,fnDown){	
+	obj.onmousewheel = fn;
+	
+	if (obj.addEventListener) {
+		obj.addEventListener('DOMMouseScroll', fn, false);
+	}
+
+	function fn(ev) {
+		var ev = ev || event;
+		var b = true;
+		
+		if (ev.wheelDelta) {
+			b = ev.wheelDelta > 0 ? true : false;
+		} else {
+			b = ev.detail < 0 ? true : false;
+		}
+
+		if ( b ) {
+			fnUp&&fnUp();
+		} else {
+			fnDown&&fnDown();
+		}
+		if (ev.preventDefault) {
+			ev.preventDefault();
+		}
+		return false;
+	}
+}/*使用示例 mouseWheel(oDiv,endUp,endDown);或mouseWheel(oDiv,function(){},function(){});*/
