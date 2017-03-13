@@ -331,3 +331,39 @@ function mouseWheel(obj,fnUp,fnDown){
 		return false;
 	}
 }/*使用示例 mouseWheel(oDiv,endUp,endDown);或mouseWheel(oDiv,function(){},function(){});*/
+
+//ajax封装
+function ajax(method, url, data, success) {//get or post, 请求地址，data如果没有数据 就是""
+	var xhr = null;
+	try {
+		xhr = new XMLHttpRequest();
+	} catch (e) {
+		xhr = new ActiveXObject('Microsoft.XMLHTTP');
+	}
+	
+	if (method == 'get' && data) {
+		//url += '?' + data;
+		url += '?' + data+"&_t="+new Date().getTime();//加入时间戳
+	}
+	
+	xhr.open(method,url,true);
+	if (method == 'get') {
+		xhr.send();
+	} else {
+		xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+		xhr.send(data);
+	}
+	
+	//当状态值发生改变的时候触发
+	xhr.onreadystatechange = function() {
+		
+		if ( xhr.readyState == 4 ) {
+			if ( xhr.status == 200 ) {
+				success && success(xhr.responseText);//处理数据
+			} else {
+				alert('出错了,Err：' + xhr.status);//可以重新定义
+			}
+		}
+		
+	}
+}
