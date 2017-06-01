@@ -367,3 +367,32 @@ function ajax(method, url, data, success) {//get or post, 请求地址，data如
 		
 	}
 }
+
+//对象拷贝
+function extending(obj1,obj2){
+	for (var attr in obj2) {
+		obj1[attr]=obj2[attr];
+	}
+}
+
+//绑定自定义事件或系统自带事件
+function bindEvent(obj,events,fn){
+	obj.listeners=obj.listeners||{};
+	obj.listeners[events]=obj.listeners[events]||[];
+
+	obj.listeners[events].push(fn);
+
+	//绑定常规事件
+	if (!!obj.nodeType) {
+		obj.addEventListener?obj.addEventListener(events,fn,false):obj.attachEvent('on'+events,fn);
+	}
+
+}
+//自动触发以上封装的事件 主要在自定义事件时会主动触发 而系统自带事件在系统事件时候会自动触发 而不需要手工触发了
+function fireEvent(obj,events){
+	if (obj.listeners&&obj.listeners[events]) {
+		for (var i = 0; i < obj.listeners[events].length; i++) {
+			obj.listeners[events][i]();
+		}		
+	}
+}
