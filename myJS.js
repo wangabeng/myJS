@@ -396,3 +396,28 @@ function fireEvent(obj,events){
 		}		
 	}
 }
+
+// url地址的查询字符串转成对象存放在数组中
+// 例如 'http://xinwen.eastday.com/a/171230070500839.html?qid=news.baidu.com&a=abeng&d=#ddddq' 转成
+// [ { qid: 'news.baidu.com' }, { a: 'abeng' }, { d: undefined } ]
+function urlToObj (url) {
+  // 以问号开始但是不包含问号的问号后的位置 
+  // var reg = /\?.*(?=#)/;
+  // 获取问号到井号之间的字符
+  // var result = str.match(reg)[0].slice(1);
+  var reg = /\?.*#/;
+  var matchResult = url.match(reg)[0];
+  // 去掉头尾 问号和井号
+  matchResult = matchResult.substring(1, matchResult.length - 1);
+  // 分割&符号
+  matchResult = matchResult.split('&'); // [ 'qid=news.baidu.com', 'a=abeng' ]
+  // 遍历数组值 把值转成对象
+  var result = [];
+  for (var i=0; i < matchResult.length; i++) {
+    var arr = matchResult[i].split('=');
+    var obj = {};
+    obj[arr[0]] = arr[1] === ''? undefined: arr[1];
+    result.push(obj);
+  }
+  return result;
+}
