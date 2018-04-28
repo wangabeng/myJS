@@ -421,3 +421,24 @@ function urlToObj (url) {
   }
   return result;
 }
+
+// 原生绑定事件 解绑事件兼容写法 handler为绑定的执行函数
+function addHandler (element,type,handler) {
+    if (element.addEventListener) {
+        element.addEventListener(type, handler, false);
+    }else if (element.attachEvent){
+        element.attachEvent('on' + type, handler);
+    }else{
+        element['on' + type] = handler;
+    }
+}
+// 原生解绑事件 解绑事件兼容写法 handler为绑定的执行函数
+function removeHandler (element,type,handler) {
+    if(element.removeEventListener){
+        element.removeEventListener(type,handler,false);
+    }else if(element.detachEvent){
+        element.detachEvent('on' + type,handler);
+    }else{
+        element['on' + type] = null;
+    }
+}
