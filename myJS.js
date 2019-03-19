@@ -497,3 +497,16 @@ function getClientHeight() {
 function getScrollHeight() { 
 	return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight); 
 }
+
+// 复制dom文档 dom为需要复制的节点元素
+function copyDom (dom) {
+	var range = document.createRange();
+	range.selectNode(dom);
+
+	var selection = window.getSelection();
+	if(selection.rangeCount > 0) selection.removeAllRanges();
+	selection.addRange(range);
+	document.execCommand('copy');
+	// alert("复制成功！" + dom.innerHTML);
+	});
+};
